@@ -1,0 +1,33 @@
+{
+  "name": "gozila",
+  "version": "0.1.0",
+  "description": "A simple blacklist npm proxy.",
+  "main": "index.js",
+  "dependencies": {
+    "ects": "^0.1.4",
+    "http-proxy": "^1.1.5",
+    "portfinder": "^0.2.1",
+    "prompt": "^0.2.13",
+    "request": "^2.37.0",
+    "shelljs": "^0.3.0",
+    "shutdown-handler": "^1.0.0"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/lujb/gozila"
+  },
+  "keywords": [
+    "npm",
+    "proxy"
+  ],
+  "author": "lujb",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/lujb/gozila/issues"
+  },
+  "homepage": "https://github.com/lujb/gozila"
+}
