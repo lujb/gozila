@@ -13,8 +13,13 @@ var confpath = path.join(home, '.godzilla', 'gozila.json');
 var npmrc = path.join(home, '.npmrc');
 
 var VERSION = 201407091825;
-var oldrc = fs.readFileSync(npmrc, 'utf8');
 
+
+// hold npmrc
+var oldrc = '';
+if (fs.existsSync(npmrc)) {
+    oldrc = fs.readFileSync(npmrc, 'utf8');
+}
 
 // trap `CTRL-C`
 require('shutdown-handler').on('exit', function() {
