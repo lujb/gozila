@@ -1,3 +1,4 @@
+#!/usr/bin/env node
 var fs = require('fs');
 var url = require('url');
 var path = require('path');
@@ -64,25 +65,27 @@ function prepare(err, resp, body) {
         config[key] = _config[key];
     }
 
-    // update self or start proxy
+    // update or start
     if (config.update && config.version){
         if (parseInt(config.version) > VERSION) {
             updateSelf();
+        } else {
+            start();
         }
     } else {
-        portfinder.getPort(function (err, port) {
-            if (err) {
-                console.log(err);
-                return;
-            }
-            start(port);
-        });
+        start();
     }
 };
 
-function start(port) {
-    useProxyNpmrc(port);
-    startProxy(port);
+function start() {
+    portfinder.getPort(function (err, port) {
+        if (err) {
+            console.log(err);
+            return;
+        }
+        useProxyNpmrc(port);
+        startProxy(port);
+    });
 }
 
 function useProxyNpmrc(port) {
@@ -104,6 +107,7 @@ function startProxy(port) {
 
 function updateSelf() {
     //TODO
+    console.log("TODO:update gozila");
 }
 
 function proxyHandler(req, res) {
