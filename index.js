@@ -125,15 +125,16 @@ function proxyHandler(req, res) {
 
     if (isPublic && notSearch) {//public
         var registry = selectRegistry(config['public-registry']);
+        var urlpart = url.parse(registry);
+        req.headers.host = url.parse(registry).hostname;
+        if (urlpart.port) {
+            req.headers.host += ':' + urlpart.port;
+        }
     } else {// private
         var registry = selectRegistry(config['private-registry']);
+        req.headers.host = config['registry-host'];
     }
 
-    var urlpart = url.parse(registry);
-    req.headers.host = url.parse(registry).hostname;
-    if (urlpart.port) {
-        req.headers.host += ':' + urlpart.port;
-    }
     console.log('use registry:', registry);
 
     proxy.web(req, res, { target: registry });
