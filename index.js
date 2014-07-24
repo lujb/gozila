@@ -1,9 +1,9 @@
 #!/usr/bin/env node
-var _ = require('underscore');
 var fs = require('fs');
 var url = require('url');
 var path = require('path');
 var http = require('http');
+var _ = require('underscore');
 var prompt = require('prompt');
 var request = require('request');
 var httpProxy = require('http-proxy');
@@ -13,7 +13,7 @@ var home = process.env.HOME;
 var confpath = path.join(home, '.godzilla', 'gozila.json');
 var npmrc = path.join(home, '.npmrc');
 
-var VERSION = 201407091825;
+var VERSION = 201407241535;
 
 // init proxy handler
 var proxy = httpProxy.createProxyServer({});
@@ -22,24 +22,31 @@ proxy.on('proxyRes', function (res) { });
 */
 
 
-// hold npmrc
-var oldrc = '';
-if (fs.existsSync(npmrc)) {
-    oldrc = fs.readFileSync(npmrc, 'utf8');
-}
-
-// trap `CTRL-C`
-require('shutdown-handler').on('exit', function() {
-    fs.writeFileSync(npmrc, oldrc, 'utf8');
-});
-
 // load local config
 try {
     var config = JSON.parse(fs.readFileSync(confpath, 'utf8'));
+    verbose("- Load gozila config from", confpath, "...");
+    for (var key in config){
+        verbose("-  ", key+":", config[key]);
+    }
 } catch(err) {
     console.log(err);
     return;
 }
+
+// hold npmrc
+var oldrc = '';
+if (fs.existsSync(npmrc)) {
+    oldrc = fs.readFileSync(npmrc, 'utf8');
+    verbose("- Backup current .npmrc ...");
+}
+
+// trap `CTRL-C`
+verbose("- Trap SIGINT signal ...");
+require('shutdown-handler').on('exit', function() {
+    fs.writeFileSync(npmrc, oldrc, 'utf8');
+    verbose("- Recover .npmrc ...");
+});
 
 // read credentials
 readCredentials(fire);
@@ -54,6 +61,8 @@ function fire(err, credentials) {
     var s = credentials.username + ':' + credentials.password;
     config.user = credentials.username;
     config.auth = new Buffer(s).toString('base64');
+
+    verbose("- Auth user credentials ...");
     request.get(config['gozila-url'], prepare)
            .auth(credentials.username, credentials.password);
 }
@@ -72,14 +81,18 @@ function prepare(err, resp, body) {
         return;
     }
 
+    verbose("- Get gozila server config ...");
+
     // update config
     for (var key in _config) {
+        verbose("-  ", key+":", _config[key]);
         config[key] = _config[key];
     }
 
     // update or start
     if (config.update && config.version){
         if (parseInt(config.version) > VERSION) {
+            console.log("* A newer version found:", config.version, "(current:", VERSION+")");
             updateSelf();
         } else {
             start();
@@ -90,6 +103,7 @@ function prepare(err, resp, body) {
 };
 
 function start() {
+    verbose("- Select unused port ...");
     portfinder.getPort(function (err, port) {
         if (err) {
             console.log(err);
@@ -107,19 +121,24 @@ function useProxyNpmrc(port) {
     content += '\nregistry=http://127.0.0.1:' + port + '/';
     content += '\nemail=' + config.user + '@' + config.host;
     content += '\nloglevel=http';
+
+    verbose("- Apply new .npmrc ...");
+    verbose(content);
     fs.writeFileSync(npmrc, content, 'utf8');
 }
 
 function startProxy(port) {
     console.log(gozila + '\n');
     console.log("Proxy running on port:", port);
+    console.log("Version:", VERSION);
     console.log("Tip: use [Ctrl-C] to exit.");
     http.createServer(proxyHandler).listen(port);
 }
 
 function updateSelf() {
+    verbose("- Update gozila ...");
     //TODO
-    console.log("TODO:update gozila");
+    console.log("* gozila can't update itself automatically, please update manually.");
 }
 
 function proxyHandler(req, res) {
@@ -155,6 +174,7 @@ function selectRegistry(array) {
 }
 
 function readCredentials(cb) {
+    verbose("- Read user credentials ...");
     var schema = {
         properties: {
             username: { required: true },
@@ -167,6 +187,12 @@ function readCredentials(cb) {
 
     prompt.start();
     prompt.get(schema, cb);
+}
+
+function verbose() {
+    if (config && config.verbose) {
+        console.log.apply(this, arguments);
+    }
 }
 
 var gozila = function() {
