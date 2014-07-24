@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+var _ = require('underscore');
 var fs = require('fs');
 var url = require('url');
 var path = require('path');
@@ -13,6 +14,12 @@ var confpath = path.join(home, '.godzilla', 'gozila.json');
 var npmrc = path.join(home, '.npmrc');
 
 var VERSION = 201407091825;
+
+// init proxy handler
+var proxy = httpProxy.createProxyServer({});
+/*proxy.on('proxyReq', function(proxyReq, req, res, options) { });
+proxy.on('proxyRes', function (res) { });
+*/
 
 
 // hold npmrc
@@ -116,14 +123,15 @@ function updateSelf() {
 }
 
 function proxyHandler(req, res) {
-    var proxy = httpProxy.createProxyServer({});
     var p = url.parse(req.url).path.split('/')[1];
-    var isPublic = config['private-packages'].indexOf(p) === -1;
     var notSearch = p !== '-';
+    var isPrivate = _.some(config['private-packages'], function(s){
+        return (new RegExp("^"+s)).test(p);
+    });
 
     console.log("\nrequesting:", req.url, "for", p);
 
-    if (isPublic && notSearch) {//public
+    if (!isPrivate && notSearch) {//public
         var registry = selectRegistry(config['public-registry']);
         var urlpart = url.parse(registry);
         req.headers.host = url.parse(registry).hostname;
