@@ -9,7 +9,8 @@
     "prompt": "^0.2.13",
     "request": "^2.37.0",
     "shelljs": "^0.3.0",
-    "shutdown-handler": "^1.0.0"
+    "shutdown-handler": "^1.0.0",
+    "underscore": "^1.6.0"
   },
   "devDependencies": {},
   "scripts": {
