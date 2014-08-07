@@ -145,7 +145,7 @@ function proxyHandler(req, res) {
     var p = url.parse(req.url).path.split('/')[1];
     var notSearch = p !== '-';
     var isPrivate = _.some(config['private-packages'], function(s){
-        return (new RegExp("^"+s)).test(p);
+        return (new RegExp(s)).test(p);
     });
 
     console.log("\nrequesting:", req.url, "for", p);
